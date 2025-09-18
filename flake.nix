@@ -2,7 +2,7 @@
   description = "Xinux Library";
 
   inputs = {
-    nixpkgs.url = "github:xinux-org/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:xinux-org/nixpkgs/nixos-25.05";
     # NOTE: `nix flake lock --update-input flake-utils-plus` is currently NOT
     # giving us the appropriate revision. We need a fix from a recent PR in
     # FUP, so this revision is being hard coded here for now.
