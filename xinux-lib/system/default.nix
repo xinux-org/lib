@@ -296,6 +296,7 @@ in {
           then user-darwin-modules
           else user-nixos-modules;
         user-modules-list = builtins.attrValues user-modules;
+        # systems.modules.nixos [inputs.xinux-modules.nixosModules.efiboot ...]
         system-modules =
           if is-darwin system-metadata.target
           then darwin-modules
