@@ -3,9 +3,16 @@
   user-inputs,
   xinux-lib,
   xinux-config,
-}: let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl filterAttrs const;
-in rec {
+}:
+let
+  inherit (core-inputs.nixpkgs.lib)
+    assertMsg
+    foldl
+    filterAttrs
+    const
+    ;
+in
+rec {
   flake = rec {
     ## Remove the `self` attribute from an attribute set.
     ## Example Usage:
@@ -17,7 +24,7 @@ in rec {
     ## { x = true; }
     ## ```
     #@ Attrs -> Attrs
-    without-self = flake-inputs: builtins.removeAttrs flake-inputs ["self"];
+    without-self = flake-inputs: builtins.removeAttrs flake-inputs [ "self" ];
 
     ## Remove the `src` attribute from an attribute set.
     ## Example Usage:
@@ -29,7 +36,7 @@ in rec {
     ## { x = true; }
     ## ```
     #@ Attrs -> Attrs
-    without-src = flake-inputs: builtins.removeAttrs flake-inputs ["src"];
+    without-src = flake-inputs: builtins.removeAttrs flake-inputs [ "src" ];
 
     ## Remove the `src` and `self` attributes from an attribute set.
     ## Example Usage:
@@ -53,10 +60,9 @@ in rec {
     ## { x = true; }
     ## ```
     #@ Attrs -> Attrs
-    without-xinux-options = flake-options:
-      builtins.removeAttrs
-      flake-options
-      [
+    without-xinux-options =
+      flake-options:
+      builtins.removeAttrs flake-options [
         "systems"
         "modules"
         "overlays"
@@ -83,85 +89,90 @@ in rec {
     ## { x = nixpkgs.lib; }
     ## ```
     #@ Attrs -> Attrs
-    get-libs = attrs: let
-      # @PERF(jakehamilton): Replace filter+map with a fold.
-      attrs-with-libs =
-        filterAttrs
-        (name: value: builtins.isAttrs (value.lib or null))
-        attrs;
-      libs =
-        builtins.mapAttrs (name: input: input.lib) attrs-with-libs;
-    in
+    get-libs =
+      attrs:
+      let
+        # @PERF(jakehamilton): Replace filter+map with a fold.
+        attrs-with-libs = filterAttrs (name: value: builtins.isAttrs (value.lib or null)) attrs;
+        libs = builtins.mapAttrs (name: input: input.lib) attrs-with-libs;
+      in
       libs;
   };
 
-  mkFlake = full-flake-options: let
-    namespace = xinux-config.namespace or "internal";
-    custom-flake-options = flake.without-xinux-options full-flake-options;
-    alias = full-flake-options.alias or {};
-    homes = xinux-lib.home.create-homes (full-flake-options.homes or {});
-    systems = xinux-lib.system.create-systems {
-      systems = full-flake-options.systems or {};
-      homes = full-flake-options.homes or {};
-    };
-    hosts = xinux-lib.attrs.merge-shallow [(full-flake-options.systems.hosts or {}) systems homes];
-    templates = xinux-lib.template.create-templates {
-      overrides = full-flake-options.templates or {};
-      alias = alias.templates or {};
-    };
-    nixos-modules = xinux-lib.module.create-modules {
-      src = xinux-lib.fs.get-xinux-file "modules/nixos";
-      overrides = full-flake-options.modules.nixos or {};
-      alias = alias.modules.nixos or {};
-    };
-    darwin-modules = xinux-lib.module.create-modules {
-      src = xinux-lib.fs.get-xinux-file "modules/darwin";
-      overrides = full-flake-options.modules.darwin or {};
-      alias = alias.modules.darwin or {};
-    };
-    home-modules = xinux-lib.module.create-modules {
-      src = xinux-lib.fs.get-xinux-file "modules/home";
-      overrides = full-flake-options.modules.home or {};
-      alias = alias.modules.home or {};
-    };
-    overlays = xinux-lib.overlay.create-overlays {
-      inherit namespace;
-      extra-overlays = full-flake-options.extra-exported-overlays or {};
-    };
-
-    outputs-builder = channels: let
-      user-outputs-builder =
-        full-flake-options.outputs-builder
-        or full-flake-options.outputsBuilder
-        or (const {});
-      user-outputs = user-outputs-builder channels;
-      packages = xinux-lib.package.create-packages {
-        inherit channels namespace;
-        overrides = (full-flake-options.packages or {}) // (user-outputs.packages or {});
-        alias = alias.packages or {};
+  mkFlake =
+    full-flake-options:
+    let
+      namespace = xinux-config.namespace or "internal";
+      custom-flake-options = flake.without-xinux-options full-flake-options;
+      alias = full-flake-options.alias or { };
+      homes = xinux-lib.home.create-homes (full-flake-options.homes or { });
+      systems = xinux-lib.system.create-systems {
+        systems = full-flake-options.systems or { };
+        homes = full-flake-options.homes or { };
       };
-      shells = xinux-lib.shell.create-shells {
-        inherit channels;
-        overrides = (full-flake-options.shells or {}) // (user-outputs.devShells or {});
-        alias = alias.shells or {};
+      hosts = xinux-lib.attrs.merge-shallow [
+        (full-flake-options.systems.hosts or { })
+        systems
+        homes
+      ];
+      templates = xinux-lib.template.create-templates {
+        overrides = full-flake-options.templates or { };
+        alias = alias.templates or { };
       };
-      checks = xinux-lib.check.create-checks {
-        inherit channels;
-        overrides = (full-flake-options.checks or {}) // (user-outputs.checks or {});
-        alias = alias.checks or {};
+      nixos-modules = xinux-lib.module.create-modules {
+        src = xinux-lib.fs.get-xinux-file "modules/nixos";
+        overrides = full-flake-options.modules.nixos or { };
+        alias = alias.modules.nixos or { };
+      };
+      darwin-modules = xinux-lib.module.create-modules {
+        src = xinux-lib.fs.get-xinux-file "modules/darwin";
+        overrides = full-flake-options.modules.darwin or { };
+        alias = alias.modules.darwin or { };
+      };
+      home-modules = xinux-lib.module.create-modules {
+        src = xinux-lib.fs.get-xinux-file "modules/home";
+        overrides = full-flake-options.modules.home or { };
+        alias = alias.modules.home or { };
+      };
+      overlays = xinux-lib.overlay.create-overlays {
+        inherit namespace;
+        extra-overlays = full-flake-options.extra-exported-overlays or { };
       };
 
-      outputs = {
-        inherit packages checks;
+      outputs-builder =
+        channels:
+        let
+          user-outputs-builder =
+            full-flake-options.outputs-builder or full-flake-options.outputsBuilder or (const { });
+          user-outputs = user-outputs-builder channels;
+          packages = xinux-lib.package.create-packages {
+            inherit channels namespace;
+            overrides = (full-flake-options.packages or { }) // (user-outputs.packages or { });
+            alias = alias.packages or { };
+          };
+          shells = xinux-lib.shell.create-shells {
+            inherit channels;
+            overrides = (full-flake-options.shells or { }) // (user-outputs.devShells or { });
+            alias = alias.shells or { };
+          };
+          checks = xinux-lib.check.create-checks {
+            inherit channels;
+            overrides = (full-flake-options.checks or { }) // (user-outputs.checks or { });
+            alias = alias.checks or { };
+          };
 
-        devShells = shells;
-      };
-    in
-      xinux-lib.attrs.merge-deep [user-outputs outputs];
+          outputs = {
+            inherit packages checks;
 
-    flake-options =
-      custom-flake-options
-      // {
+            devShells = shells;
+          };
+        in
+        xinux-lib.attrs.merge-deep [
+          user-outputs
+          outputs
+        ];
+
+      flake-options = custom-flake-options // {
         inherit hosts templates;
         inherit (user-inputs) self;
 
@@ -172,30 +183,27 @@ in rec {
         darwinModules = darwin-modules;
         homeModules = home-modules;
 
-        channelsConfig = full-flake-options.channels-config or {};
+        channelsConfig = full-flake-options.channels-config or { };
 
         channels.nixpkgs.overlaysBuilder = xinux-lib.overlay.create-overlays-builder {
           inherit namespace;
-          extra-overlays = full-flake-options.overlays or [];
+          extra-overlays = full-flake-options.overlays or [ ];
         };
 
         outputsBuilder = outputs-builder;
 
         xinux = {
           config = xinux-config;
-          raw-config = full-flake-options.xinux or {};
+          raw-config = full-flake-options.xinux or { };
           user-lib = xinux-lib.internal.user-lib;
         };
       };
 
-    flake-utils-plus-outputs =
-      core-inputs.flake-utils-plus.lib.mkFlake flake-options;
+      flake-utils-plus-outputs = core-inputs.flake-utils-plus.lib.mkFlake flake-options;
 
-    flake-outputs =
-      flake-utils-plus-outputs
-      // {
+      flake-outputs = flake-utils-plus-outputs // {
         inherit overlays;
       };
-  in
+    in
     flake-outputs;
 }
