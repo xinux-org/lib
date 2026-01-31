@@ -15,6 +15,16 @@
     };
 
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    git-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    treefmt-nix = {
+      url = "github:numtide/treefmt-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -55,6 +65,9 @@
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (
       { ... }:
       {
+        imports = [
+          ./shell.nix
+        ];
         systems = [
           "x86_64-linux"
           "aarch64-linux"
@@ -64,6 +77,8 @@
         flake = {
           # Put your original flake attributes here.
           inherit mkLib mkFlake;
+
+          flakeModules.developmentShell = ./shell.nix;
 
           nixosModules = {
             user = ./modules/nixos/user/default.nix;
@@ -105,15 +120,6 @@
               removeAttrs lib.xinux [ "internal" ];
           };
         };
-        perSystem =
-          { pkgs, ... }:
-          {
-            # Nix script formatter
-            formatter = pkgs.nixfmt-tree;
-
-            # Development environment
-            devShells.default = import ./shell.nix { inherit pkgs; };
-          };
       }
     );
 }
