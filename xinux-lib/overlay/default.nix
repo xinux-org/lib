@@ -96,7 +96,7 @@ in
           let
             user-packages = xinux-lib.package.create-packages {
               pkgs = final;
-              channels = channel-systems.${prev.system};
+              channels = channel-systems.${prev.stdenv.hostPlatform.system};
               inherit namespace;
             };
           in
@@ -114,7 +114,7 @@ in
             overlay =
               final: prev:
               let
-                channels = channel-systems.${prev.system};
+                channels = channel-systems.${prev.stdenv.hostPlatform.system};
                 user-overlay = import file (
                   # Deprecated: Use `inputs.*` instead of referencing the input name directly.
                   user-inputs
@@ -162,7 +162,7 @@ in
             overlay =
               final: prev:
               let
-                channels = channel-systems.${prev.system};
+                channels = channel-systems.${prev.stdenv.hostPlatform.system};
                 packages = xinux-lib.package.create-packages {
                   inherit namespace;
                   channels = channel-systems.${prev.system};
