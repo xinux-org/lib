@@ -78,7 +78,8 @@
           # Put your original flake attributes here.
           inherit mkLib mkFlake;
 
-          flakeModules.developmentShell = ./shell.nix;
+          # flakeModules.developmentShell = ./shell.nix;
+          flakeModules.developmentShell = import ./shell.nix { inherit inputs; };
 
           nixosModules = {
             user = ./modules/nixos/user/default.nix;
