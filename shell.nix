@@ -16,7 +16,7 @@
         programs = {
           # Nix
           nixfmt.enable = true;
-          statix.enable = true;
+          # statix.enable = true;
           # deadnix.enable = true;
 
           # HTML, CSS, JS, MD, YAML, TOML
