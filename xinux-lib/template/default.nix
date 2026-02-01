@@ -1,10 +1,12 @@
 {
   core-inputs,
+  user-inputs,
   xinux-lib,
+  xinux-config,
 }:
 let
   inherit (builtins) baseNameOf;
-  inherit (core-inputs.nixpkgs.lib) foldl mapAttrs;
+  inherit (core-inputs.nixpkgs.lib) assertMsg foldl mapAttrs;
 
   user-templates-root = xinux-lib.fs.get-xinux-file "templates";
 in
@@ -44,7 +46,7 @@ in
             };
           };
         templates-without-aliases = foldl merge-templates { } templates-metadata;
-        aliased-templates = mapAttrs (_name: value: templates-without-aliases.${value}) alias;
+        aliased-templates = mapAttrs (name: value: templates-without-aliases.${value}) alias;
         unused-overrides = builtins.removeAttrs overrides (
           builtins.map (metadata: metadata.name) templates-metadata
         );

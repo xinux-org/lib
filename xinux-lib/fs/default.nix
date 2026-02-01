@@ -6,10 +6,15 @@
 }:
 let
   inherit (builtins) readDir pathExists;
+  inherit (core-inputs) flake-utils-plus;
   inherit (core-inputs.nixpkgs.lib)
+    assertMsg
     filterAttrs
     mapAttrsToList
+    flatten
     ;
+
+  file-name-regex = "(.*)\\.(.*)$";
 in
 {
   fs = rec {
@@ -90,9 +95,9 @@ in
       path:
       let
         entries = safe-read-directory path;
-        filtered-entries = filterAttrs (_name: is-directory-kind) entries;
+        filtered-entries = filterAttrs (name: kind: is-directory-kind kind) entries;
       in
-      mapAttrsToList (name: _kind: "${path}/${name}") filtered-entries;
+      mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
     ## Get files at a given path.
     ## Example Usage:
@@ -108,9 +113,9 @@ in
       path:
       let
         entries = safe-read-directory path;
-        filtered-entries = filterAttrs (_name: is-file-kind) entries;
+        filtered-entries = filterAttrs (name: kind: is-file-kind kind) entries;
       in
-      mapAttrsToList (name: _kind: "${path}/${name}") filtered-entries;
+      mapAttrsToList (name: kind: "${path}/${name}") filtered-entries;
 
     ## Get files at a given path, traversing any directories within.
     ## Example Usage:
@@ -127,7 +132,7 @@ in
       let
         entries = safe-read-directory path;
         filtered-entries = filterAttrs (
-          _name: kind: (is-file-kind kind) || (is-directory-kind kind)
+          name: kind: (is-file-kind kind) || (is-directory-kind kind)
         ) entries;
         map-file =
           name: kind:

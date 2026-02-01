@@ -15,7 +15,7 @@ let
   core-inputs-libs = xinux-lib.flake.get-libs (xinux-lib.flake.without-self core-inputs);
   user-inputs-libs = xinux-lib.flake.get-libs (xinux-lib.flake.without-self user-inputs);
 
-  xinux-top-level-lib = filterAttrs (_name: value: !builtins.isAttrs value) xinux-lib;
+  xinux-top-level-lib = filterAttrs (name: value: !builtins.isAttrs value) xinux-lib;
 
   base-lib = xinux-lib.attrs.merge-shallow [
     core-inputs.nixpkgs.lib
@@ -34,7 +34,7 @@ let
       attrs = {
         inputs = xinux-lib.flake.without-xinux-inputs user-inputs;
         xinux-inputs = core-inputs;
-        inherit (xinux-config) namespace;
+        namespace = xinux-config.namespace;
         lib = xinux-lib.attrs.merge-shallow [
           base-lib
           { "${xinux-config.namespace}" = user-lib; }

@@ -9,12 +9,23 @@ let
     assertMsg
     foldl
     head
+    tail
     concatMap
+    optionalAttrs
+    optional
     mkIf
+    filterAttrs
+    mapAttrs'
+    mkMerge
     mapAttrsToList
+    optionals
     mkDefault
+    mkAliasDefinitions
     mkAliasAndWrapDefinitions
+    mkOption
+    types
     hasInfix
+    hasSuffix
     ;
 
   user-homes-root = xinux-lib.fs.get-xinux-file "homes";
@@ -28,13 +39,13 @@ in
       # not exist.
       if user-inputs ? home-manager then
         xinux-lib.internal.system-lib.extend (
-          _final: prev:
+          final: prev:
           # NOTE: This order is important, this library's extend and other utilities must write
           # _over_ the original `system-lib`.
           xinux-lib.internal.system-lib
           // prev
           // {
-            inherit (xinux-lib.internal.system-lib.home-manager) hm;
+            hm = xinux-lib.internal.system-lib.home-manager.hm;
           }
         )
       else
@@ -114,7 +125,7 @@ in
           format = "home";
 
           inputs = xinux-lib.flake.without-src user-inputs;
-          inherit (xinux-config) namespace;
+          namespace = xinux-config.namespace;
 
           # NOTE: home-manager has trouble with `pkgs` recursion if it isn't passed in here.
           inherit pkgs lib;
@@ -204,7 +215,8 @@ in
         };
 
         user-home-modules-list = mapAttrsToList (
-          module-path: module: args:
+          module-path: module:
+          args@{ pkgs, ... }:
           (module args)
           // {
             _file = "${user-homes-root}/${module-path}/default.nix";
@@ -274,7 +286,8 @@ in
         };
 
         extra-special-args-module =
-          {
+          args@{
+            config,
             pkgs,
             system ? pkgs.stdenv.hostPlatform.system,
             target ? system,
@@ -313,7 +326,7 @@ in
             other-modules = users.users.${name}.modules or [ ];
             user-name = created-user.specialArgs.user;
           in
-          {
+          args@{
             config,
             options,
             pkgs,
@@ -370,7 +383,7 @@ in
                     (
                       (users.users.${name}.specialArgs or { })
                       // {
-                        inherit (xinux-config) namespace;
+                        namespace = xinux-config.namespace;
                       }
                     )
                     [
@@ -385,7 +398,7 @@ in
 
               home-manager = {
                 users.${user-name} = mkIf config.xinux-org.users.${user-name}.home.enable (
-                  { ... }:
+                  { pkgs, ... }:
                   {
                     imports = (home-config.imports or [ ]) ++ other-modules ++ [ user-module ];
                     config = builtins.removeAttrs home-config [ "imports" ];

@@ -7,6 +7,7 @@
 let
   inherit (core-inputs.flake-utils-plus.lib) filterPackages;
   inherit (core-inputs.nixpkgs.lib)
+    assertMsg
     foldl
     mapAttrs
     callPackageWith
@@ -43,7 +44,7 @@ in
               inherit channels;
               lib = xinux-lib.internal.system-lib;
               inputs = xinux-lib.flake.without-src user-inputs;
-              inherit (xinux-config) namespace;
+              namespace = xinux-config.namespace;
             };
           in
           {
@@ -58,7 +59,7 @@ in
             ${metadata.name} = metadata.drv;
           };
         checks-without-aliases = foldl merge-checks { } checks-metadata;
-        aliased-checks = mapAttrs (_name: value: checks-without-aliases.${value}) alias;
+        aliased-checks = mapAttrs (name: value: checks-without-aliases.${value}) alias;
         checks = checks-without-aliases // aliased-checks // overrides;
       in
       filterPackages pkgs.stdenv.hostPlatform.system checks;

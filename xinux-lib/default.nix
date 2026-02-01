@@ -6,7 +6,7 @@ core-inputs: user-options:
 let
   raw-xinux-config = user-options.xinux or { };
   xinux-config = raw-xinux-config // {
-    inherit (user-options) src;
+    src = user-options.src;
     root = raw-xinux-config.root or user-options.src;
     namespace = raw-xinux-config.namespace or "internal";
     meta = {
@@ -16,7 +16,7 @@ let
   };
 
   user-inputs = user-options.inputs // {
-    inherit (user-options) src;
+    src = user-options.src;
   };
 
   inherit (core-inputs.nixpkgs.lib)
@@ -52,8 +52,8 @@ let
     attrs:
     let
       # @PERF(jakehamilton): Replace filter+map with a fold.
-      attrs-with-libs = filterAttrs (_name: value: builtins.isAttrs (value.lib or null)) attrs;
-      libs = builtins.mapAttrs (_name: input: input.lib) attrs-with-libs;
+      attrs-with-libs = filterAttrs (name: value: builtins.isAttrs (value.lib or null)) attrs;
+      libs = builtins.mapAttrs (name: input: input.lib) attrs-with-libs;
     in
     libs;
 
@@ -72,7 +72,7 @@ let
   xinux-lib-dirs =
     let
       files = builtins.readDir xinux-lib-root;
-      dirs = filterAttrs (_name: kind: kind == "directory") files;
+      dirs = filterAttrs (name: kind: kind == "directory") files;
       names = builtins.attrNames dirs;
     in
     names;
@@ -93,7 +93,7 @@ let
     merge-deep libs
   );
 
-  xinux-top-level-lib = filterAttrs (_name: value: !builtins.isAttrs value) xinux-lib;
+  xinux-top-level-lib = filterAttrs (name: value: !builtins.isAttrs value) xinux-lib;
 
   base-lib = merge-shallow [
     core-inputs.nixpkgs.lib
@@ -112,7 +112,7 @@ let
       attrs = {
         inherit (user-options) inputs;
         xinux-inputs = core-inputs;
-        inherit (xinux-config) namespace;
+        namespace = xinux-config.namespace;
         lib = merge-shallow [
           base-lib
           { ${xinux-config.namespace} = user-lib; }

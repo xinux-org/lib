@@ -1,7 +1,11 @@
 {
   core-inputs,
+  user-inputs,
+  xinux-lib,
+  xinux-config,
 }:
 let
+  inherit (builtins) baseNameOf dirOf;
   inherit (core-inputs.nixpkgs.lib) id foldr flip;
 in
 {
@@ -42,7 +46,7 @@ in
     ## 1
     ## ```
     #@ (a -> b) -> a -> b
-    call = f: f;
+    call = f: x: f x;
 
     ## Apply an argument to a function.
     ## Example Usage:
