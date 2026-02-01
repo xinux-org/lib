@@ -1,0 +1,23 @@
+name: "NixOS Config Check"
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+jobs:
+  check:
+    name: flake check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            experimental-features = nix-command flakes
+      - name: Check Flake evaluation
+        run: nix flake check --show-trace --verbose --accept-flake-config
+      - name: Build NixOS Configurations
+        run: |
+          nix build .#nixosConfigurations.xenon.config.system.build.toplevel --dry-run
