@@ -5,12 +5,10 @@
   xinux-config,
 }:
 let
-  inherit (core-inputs.flake-utils-plus.lib) filterPackages allSystems;
+  inherit (core-inputs.flake-utils-plus.lib) filterPackages;
   inherit (core-inputs.nixpkgs.lib)
-    assertMsg
     foldl
     mapAttrs
-    filterAttrs
     callPackageWith
     ;
 
@@ -78,7 +76,7 @@ in
             ${metadata.name} = metadata.drv;
           };
         packages-without-aliases = foldl merge-packages { } packages-metadata;
-        aliased-packages = mapAttrs (name: value: packages-without-aliases.${value}) alias;
+        aliased-packages = mapAttrs (_name: value: packages-without-aliases.${value}) alias;
         packages = packages-without-aliases // aliased-packages // overrides;
       in
       filterPackages pkgs.stdenv.hostPlatform.system packages;

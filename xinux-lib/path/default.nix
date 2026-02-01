@@ -1,8 +1,6 @@
 {
   core-inputs,
-  user-inputs,
   xinux-lib,
-  xinux-config,
 }:
 let
   inherit (builtins)

@@ -5,7 +5,7 @@
   xinux-config,
 }:
 let
-  inherit (builtins) dirOf baseNameOf;
+  inherit (builtins) baseNameOf;
   inherit (core-inputs.nixpkgs.lib)
     assertMsg
     fix
@@ -13,7 +13,6 @@ let
     concatMap
     foldl
     optionals
-    singleton
     ;
 
   virtual-systems = import ./virtual-systems.nix;
@@ -291,7 +290,7 @@ in
 
           virtual = (get-virtual-system-type target) != "";
           inputs = xinux-lib.flake.without-src user-inputs;
-          namespace = xinux-config.namespace;
+          inherit (xinux-config) namespace;
         };
       };
 

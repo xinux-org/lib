@@ -5,7 +5,7 @@
   xinux-config,
 }:
 let
-  inherit (core-inputs.nixpkgs.lib) assertMsg foldl concatStringsSep;
+  inherit (core-inputs.nixpkgs.lib) foldl;
 
   user-overlays-root = xinux-lib.fs.get-xinux-file "overlays";
   user-packages-root = xinux-lib.fs.get-xinux-file "packages";
@@ -107,7 +107,7 @@ in
               ${namespace} = (prev.${namespace} or { }) // user-packages;
             };
 
-        create-overlay = (
+        create-overlay =
           overlays: file:
           let
             name = builtins.unsafeDiscardStringContext (xinux-lib.path.get-parent-directory file);
@@ -136,20 +136,19 @@ in
                 user-overlay-packages = user-overlay final prev-with-packages;
                 outputs = user-overlay-packages;
               in
-              if user-overlay-packages.__dontExport or false == true then
+              if user-overlay-packages.__dontExport or false then
                 outputs // { __dontExport = true; }
               else
                 outputs;
             fake-overlay-result = overlay fake-pkgs fake-pkgs;
           in
-          if fake-overlay-result.__dontExport or false == true then
+          if fake-overlay-result.__dontExport or false then
             overlays
           else
             overlays
             // {
               ${name} = overlay;
-            }
-        );
+            };
 
         overlays = foldl create-overlay { } user-overlays;
 
@@ -160,9 +159,8 @@ in
           let
             name = builtins.unsafeDiscardStringContext (xinux-lib.path.get-parent-directory file);
             overlay =
-              final: prev:
+              _final: prev:
               let
-                channels = channel-systems.${prev.stdenv.hostPlatform.system};
                 packages = xinux-lib.package.create-packages {
                   inherit namespace;
                   channels = channel-systems.${prev.system};

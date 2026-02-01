@@ -5,15 +5,11 @@
   xinux-config,
 }:
 let
-  inherit (builtins) baseNameOf;
   inherit (core-inputs.nixpkgs.lib)
     foldl
     mapAttrs
     hasPrefix
-    hasSuffix
     isFunction
-    splitString
-    tail
     ;
 
   user-modules-root = xinux-lib.fs.get-xinux-file "modules";
@@ -59,7 +55,7 @@ in
             # NOTE: home-manager *requires* modules to specify named arguments or it will not
             # pass values in. For this reason we must specify things like `pkgs` as a named attribute.
             ${metadata.name} =
-              args@{ pkgs, ... }:
+              args:
               let
                 system = args.system or args.pkgs.stdenv.hostPlatform.system;
                 target = args.target or system;
@@ -85,7 +81,7 @@ in
                   pkgs = user-inputs.self.pkgs.${system}.nixpkgs;
 
                   inputs = xinux-lib.flake.without-src user-inputs;
-                  namespace = xinux-config.namespace;
+                  inherit (xinux-config) namespace;
                 };
                 imported-user-module = import metadata.path;
                 user-module =
@@ -97,7 +93,7 @@ in
               user-module // { _file = metadata.path; };
           };
         modules-without-aliases = foldl merge-modules { } modules-metadata;
-        aliased-modules = mapAttrs (name: value: modules-without-aliases.${value}) alias;
+        aliased-modules = mapAttrs (_name: value: modules-without-aliases.${value}) alias;
         modules = modules-without-aliases // aliased-modules // overrides;
       in
       modules;

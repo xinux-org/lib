@@ -1,12 +1,8 @@
 {
   core-inputs,
-  user-inputs,
-  xinux-lib,
-  xinux-config,
 }:
 let
   inherit (core-inputs.nixpkgs.lib)
-    assertMsg
     mapAttrsToList
     mapAttrs
     flatten

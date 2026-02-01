@@ -6,8 +6,6 @@
 }:
 let
   inherit (core-inputs.nixpkgs.lib)
-    assertMsg
-    foldl
     filterAttrs
     const
     ;
@@ -93,8 +91,8 @@ rec {
       attrs:
       let
         # @PERF(jakehamilton): Replace filter+map with a fold.
-        attrs-with-libs = filterAttrs (name: value: builtins.isAttrs (value.lib or null)) attrs;
-        libs = builtins.mapAttrs (name: input: input.lib) attrs-with-libs;
+        attrs-with-libs = filterAttrs (_name: value: builtins.isAttrs (value.lib or null)) attrs;
+        libs = builtins.mapAttrs (_name: input: input.lib) attrs-with-libs;
       in
       libs;
   };
@@ -195,7 +193,7 @@ rec {
         xinux = {
           config = xinux-config;
           raw-config = full-flake-options.xinux or { };
-          user-lib = xinux-lib.internal.user-lib;
+          inherit (xinux-lib.internal) user-lib;
         };
       };
 
