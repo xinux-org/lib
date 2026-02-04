@@ -6,18 +6,13 @@ on:
       - main
 jobs:
   check:
-    name: flake check
-    runs-on: ubuntu-latest
+    name: CI/CD
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@main
+        uses: actions/checkout@v6
         with:
           extra-conf: |
             experimental-features = nix-command flakes
       - name: Check Flake evaluation
         run: nix flake check --show-trace --verbose --accept-flake-config
-      - name: Build NixOS Configurations
-        run: |
-          nix build .#nixosConfigurations.xenon.config.system.build.toplevel --dry-run
