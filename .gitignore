@@ -1,8 +1,8 @@
+result
+.direnv
+
 # Temporary
 /tmp
-
-# Direnv
-.direnv
 
 # pre-commit
 .pre-commit-config.yaml
