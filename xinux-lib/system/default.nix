@@ -136,24 +136,6 @@ in
     get-system-builder =
       target:
       let
-        virtual-system-type = get-virtual-system-type target;
-        virtual-system-builder =
-          args:
-          assert assertMsg (
-            user-inputs ? nixos-generators
-          ) "In order to create virtual systems, you must include `nixos-generators` as a flake input.";
-          user-inputs.nixos-generators.nixosGenerate (
-            args
-            // {
-              format = virtual-system-type;
-              specialArgs = args.specialArgs // {
-                format = virtual-system-type;
-              };
-              modules = args.modules ++ [
-                ../../modules/nixos/user/default.nix
-              ];
-            }
-          );
         darwin-system-builder =
           args:
           assert assertMsg (
@@ -187,12 +169,7 @@ in
             }
           );
       in
-      if virtual-system-type != "" then
-        virtual-system-builder
-      else if is-darwin target then
-        darwin-system-builder
-      else
-        linux-system-builder;
+      if is-darwin target then darwin-system-builder else linux-system-builder;
 
     ## Get the flake output attribute for a system target.
     ## Example Usage:
